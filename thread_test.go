@@ -19,7 +19,7 @@ func TestCurrentThread(t *testing.T) {
 func TestPProf(t *testing.T) {
 	const concurrency = 10
 	const loopTimes = 10
-	tls := NewThreadLocal[Any]()
+	tls := NewThreadLocal[any]()
 	tls.Set("你好")
 	wg := &sync.WaitGroup{}
 	wg.Add(concurrency)

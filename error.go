@@ -3,11 +3,11 @@ package routine
 import "fmt"
 
 type stackError struct {
-	message    Any
+	message    any
 	stackTrace string
 }
 
-func (se *stackError) Message() Any {
+func (se *stackError) Message() any {
 	return se.message
 }
 

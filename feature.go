@@ -2,7 +2,7 @@ package routine
 
 import "sync"
 
-type feature[T Any] struct {
+type feature[T any] struct {
 	await  *sync.WaitGroup
 	error  StackError
 	result T
@@ -13,7 +13,7 @@ func (fea *feature[T]) Complete(result T) {
 	fea.await.Done()
 }
 
-func (fea *feature[T]) CompleteError(error Any) {
+func (fea *feature[T]) CompleteError(error any) {
 	fea.error = NewStackError(error)
 	fea.await.Done()
 }

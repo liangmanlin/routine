@@ -12,7 +12,7 @@ func nextInheritableThreadLocalId() int {
 	return int(index)
 }
 
-type inheritableThreadLocal[T Any] struct {
+type inheritableThreadLocal[T any] struct {
 	id       int
 	supplier Supplier[T]
 }

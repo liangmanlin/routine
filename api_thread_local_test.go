@@ -149,7 +149,7 @@ func TestThreadLocalWithInitial_Multi(t *testing.T) {
 }
 
 func TestThreadLocalWithInitial_Concurrency(t *testing.T) {
-	tls := NewThreadLocalWithInitial[Any](func() Any {
+	tls := NewThreadLocalWithInitial[any](func() any {
 		return "Hello"
 	})
 	tls2 := NewThreadLocalWithInitial[uint64](func() uint64 {
@@ -315,7 +315,7 @@ func TestInheritableThreadLocalWithInitial_Multi(t *testing.T) {
 }
 
 func TestInheritableThreadLocalWithInitial_Concurrency(t *testing.T) {
-	tls := NewInheritableThreadLocalWithInitial[Any](func() Any {
+	tls := NewInheritableThreadLocalWithInitial[any](func() any {
 		return "Hello"
 	})
 	tls2 := NewInheritableThreadLocalWithInitial[uint64](func() uint64 {

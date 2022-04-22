@@ -12,7 +12,7 @@ func nextThreadLocalId() int {
 	return int(index)
 }
 
-type threadLocal[T Any] struct {
+type threadLocal[T any] struct {
 	id       int
 	supplier Supplier[T]
 }
