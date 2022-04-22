@@ -12,24 +12,24 @@ func nextThreadLocalId() int {
 	return int(index)
 }
 
-type threadLocal struct {
+type threadLocal[T Any] struct {
 	id       int
-	supplier Supplier
+	supplier Supplier[T]
 }
 
-func (tls *threadLocal) Get() Any {
+func (tls *threadLocal[T]) Get() T {
 	t := currentThread(true)
 	mp := tls.getMap(t)
 	if mp != nil {
 		v := mp.get(tls.id)
 		if v != unset {
-			return v
+			return v.(T)
 		}
 	}
 	return tls.setInitialValue(t)
 }
 
-func (tls *threadLocal) Set(value Any) {
+func (tls *threadLocal[T]) Set(value T) {
 	t := currentThread(true)
 	mp := tls.getMap(t)
 	if mp != nil {
@@ -39,7 +39,7 @@ func (tls *threadLocal) Set(value Any) {
 	}
 }
 
-func (tls *threadLocal) Remove() {
+func (tls *threadLocal[T]) Remove() {
 	t := currentThread(false)
 	if t == nil {
 		return
@@ -50,17 +50,17 @@ func (tls *threadLocal) Remove() {
 	}
 }
 
-func (tls *threadLocal) getMap(t *thread) *threadLocalMap {
+func (tls *threadLocal[T]) getMap(t *thread) *threadLocalMap {
 	return t.threadLocals
 }
 
-func (tls *threadLocal) createMap(t *thread, firstValue Any) {
+func (tls *threadLocal[T]) createMap(t *thread, firstValue T) {
 	mp := &threadLocalMap{}
 	mp.set(tls.id, firstValue)
 	t.threadLocals = mp
 }
 
-func (tls *threadLocal) setInitialValue(t *thread) Any {
+func (tls *threadLocal[T]) setInitialValue(t *thread) T {
 	value := tls.initialValue()
 	mp := tls.getMap(t)
 	if mp != nil {
@@ -71,9 +71,10 @@ func (tls *threadLocal) setInitialValue(t *thread) Any {
 	return value
 }
 
-func (tls *threadLocal) initialValue() Any {
+func (tls *threadLocal[T]) initialValue() T {
 	if tls.supplier == nil {
-		return nil
+		var defaultValue T
+		return defaultValue
 	}
 	return tls.supplier()
 }

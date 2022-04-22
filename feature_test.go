@@ -7,7 +7,7 @@ import (
 )
 
 func TestComplete(t *testing.T) {
-	fea := NewFeature()
+	fea := NewFeature[int]()
 	go func() {
 		fea.Complete(1)
 	}()
@@ -24,7 +24,7 @@ func TestCompleteError(t *testing.T) {
 		}
 	}()
 
-	fea := NewFeature()
+	fea := NewFeature[string]()
 	go func() {
 		fea.CompleteError(1)
 	}()
@@ -34,7 +34,7 @@ func TestCompleteError(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	run := false
-	fea := NewFeature()
+	fea := NewFeature[*string]()
 	go func() {
 		time.Sleep(500 * time.Millisecond)
 		run = true

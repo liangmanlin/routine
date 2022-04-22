@@ -5,8 +5,8 @@ import "fmt"
 // Runnable provides a function without return values.
 type Runnable func()
 
-// Callable provides a function that returns a value of type Any.
-type Callable func() Any
+// Callable provides a function that returns a value of type T.
+type Callable[T Any] func() T
 
 // Go starts a new goroutine, and copy inheritableThreadLocals from current goroutine.
 // This function will auto invoke the fun and print error stack when panic occur in goroutine.
@@ -48,8 +48,8 @@ func Go(fun Runnable) {
 // GoWait starts a new goroutine, and copy inheritableThreadLocals from current goroutine.
 // This function return a Feature pointer, so we can wait by Feature.Get method.
 // If panic occur in goroutine, The panic will be trigger again when calling Feature.Get method.
-func GoWait(fun Runnable) Feature {
-	fea := NewFeature()
+func GoWait(fun Runnable) Feature[Any] {
+	fea := NewFeature[Any]()
 	// backup
 	copied := createInheritedMap()
 	go func() {
@@ -90,8 +90,8 @@ func GoWait(fun Runnable) Feature {
 // GoWaitResult starts a new goroutine, and copy inheritableThreadLocals from current goroutine.
 // This function return a Feature pointer, so we can wait and get result by Feature.Get method.
 // If panic occur in goroutine, The panic will be trigger again when calling Feature.Get method.
-func GoWaitResult(fun Callable) Feature {
-	fea := NewFeature()
+func GoWaitResult[T Any](fun Callable[T]) Feature[T] {
+	fea := NewFeature[T]()
 	// backup
 	copied := createInheritedMap()
 	go func() {

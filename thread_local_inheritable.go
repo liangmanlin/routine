@@ -12,24 +12,24 @@ func nextInheritableThreadLocalId() int {
 	return int(index)
 }
 
-type inheritableThreadLocal struct {
+type inheritableThreadLocal[T Any] struct {
 	id       int
-	supplier Supplier
+	supplier Supplier[T]
 }
 
-func (tls *inheritableThreadLocal) Get() Any {
+func (tls *inheritableThreadLocal[T]) Get() T {
 	t := currentThread(true)
 	mp := tls.getMap(t)
 	if mp != nil {
 		v := mp.get(tls.id)
 		if v != unset {
-			return v
+			return v.(T)
 		}
 	}
 	return tls.setInitialValue(t)
 }
 
-func (tls *inheritableThreadLocal) Set(value Any) {
+func (tls *inheritableThreadLocal[T]) Set(value T) {
 	t := currentThread(true)
 	mp := tls.getMap(t)
 	if mp != nil {
@@ -39,7 +39,7 @@ func (tls *inheritableThreadLocal) Set(value Any) {
 	}
 }
 
-func (tls *inheritableThreadLocal) Remove() {
+func (tls *inheritableThreadLocal[T]) Remove() {
 	t := currentThread(false)
 	if t == nil {
 		return
@@ -50,17 +50,17 @@ func (tls *inheritableThreadLocal) Remove() {
 	}
 }
 
-func (tls *inheritableThreadLocal) getMap(t *thread) *threadLocalMap {
+func (tls *inheritableThreadLocal[T]) getMap(t *thread) *threadLocalMap {
 	return t.inheritableThreadLocals
 }
 
-func (tls *inheritableThreadLocal) createMap(t *thread, firstValue Any) {
+func (tls *inheritableThreadLocal[T]) createMap(t *thread, firstValue T) {
 	mp := &threadLocalMap{}
 	mp.set(tls.id, firstValue)
 	t.inheritableThreadLocals = mp
 }
 
-func (tls *inheritableThreadLocal) setInitialValue(t *thread) Any {
+func (tls *inheritableThreadLocal[T]) setInitialValue(t *thread) T {
 	value := tls.initialValue()
 	mp := tls.getMap(t)
 	if mp != nil {
@@ -71,9 +71,10 @@ func (tls *inheritableThreadLocal) setInitialValue(t *thread) Any {
 	return value
 }
 
-func (tls *inheritableThreadLocal) initialValue() Any {
+func (tls *inheritableThreadLocal[T]) initialValue() T {
 	if tls.supplier == nil {
-		return nil
+		var defaultValue T
+		return defaultValue
 	}
 	return tls.supplier()
 }

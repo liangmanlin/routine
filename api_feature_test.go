@@ -6,10 +6,10 @@ import (
 )
 
 func TestNewFeature(t *testing.T) {
-	fea := NewFeature()
+	fea := NewFeature[Any]()
 	assert.NotNil(t, fea)
 	//
-	p, ok := fea.(*feature)
+	p, ok := fea.(*feature[Any])
 	assert.Same(t, p, fea)
 	assert.True(t, ok)
 }
