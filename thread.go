@@ -21,6 +21,16 @@ type thread struct {
 	inheritableThreadLocals *threadLocalMap
 }
 
+// finalize reset thread's memory.
+func (t *thread) finalize() {
+	t.labels = nil
+	t.magic = 0
+	t.id = 0
+	t.threadLocals = nil
+	t.inheritableThreadLocals = nil
+}
+
+// currentThread returns a pointer to the currently executing goroutine's thread struct.
 //go:norace
 //go:nocheckptr
 func currentThread(create bool) *thread {
@@ -31,6 +41,7 @@ func currentThread(create bool) *thread {
 	if label == nil {
 		if create {
 			newt := &thread{labels: nil, magic: threadMagic, id: goid}
+			runtime.SetFinalizer(newt, (*thread).finalize)
 			gp.setLabels(unsafe.Pointer(newt))
 			threadFinalize(newt)
 			return newt
@@ -38,11 +49,12 @@ func currentThread(create bool) *thread {
 		return nil
 	}
 	//inherited map then create
-	t, magic, id := extract(gp, label)
+	t, magic, id := extractThread(gp, label)
 	if magic != threadMagic {
 		if create {
 			mp := *(*map[string]string)(label)
 			newt := &thread{labels: mp, magic: threadMagic, id: goid}
+			runtime.SetFinalizer(newt, (*thread).finalize)
 			gp.setLabels(unsafe.Pointer(newt))
 			threadFinalize(newt)
 			return newt
@@ -53,6 +65,7 @@ func currentThread(create bool) *thread {
 	if id != goid {
 		if create || t.labels != nil {
 			newt := &thread{labels: t.labels, magic: threadMagic, id: goid}
+			runtime.SetFinalizer(newt, (*thread).finalize)
 			gp.setLabels(unsafe.Pointer(newt))
 			threadFinalize(newt)
 			return newt
@@ -64,10 +77,10 @@ func currentThread(create bool) *thread {
 	return t
 }
 
-// extract catch fault error.
+// extractThread extract thread from unsafe.Pointer and catch fault error.
 //go:norace
 //go:nocheckptr
-func extract(gp g, label unsafe.Pointer) (t *thread, magic int64, id int64) {
+func extractThread(gp g, label unsafe.Pointer) (t *thread, magic int64, id int64) {
 	old := gp.setPanicOnFault(true)
 	defer func() {
 		gp.setPanicOnFault(old)
