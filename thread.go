@@ -14,20 +14,10 @@ const threadMagic = int64('r')<<48 |
 	int64('e')
 
 type thread struct {
-	labels                  map[string]string //pprof
-	magic                   int64             //mark
-	id                      int64             //goid
-	threadLocals            *threadLocalMap
-	inheritableThreadLocals *threadLocalMap
-}
-
-// finalize reset thread's memory.
-func (t *thread) finalize() {
-	t.labels = nil
-	t.magic = 0
-	t.id = 0
-	t.threadLocals = nil
-	t.inheritableThreadLocals = nil
+	labels map[string]string //pprof
+	magic  int64             //mark
+	id     int64             //goid
+	val    unsafe.Pointer
 }
 
 // currentThread returns a pointer to the currently executing goroutine's thread struct.
@@ -41,9 +31,8 @@ func currentThread(create bool) *thread {
 	if label == nil {
 		if create {
 			newt := &thread{labels: nil, magic: threadMagic, id: goid}
-			runtime.SetFinalizer(newt, (*thread).finalize)
 			gp.setLabels(unsafe.Pointer(newt))
-			threadFinalize(newt)
+			runtime.SetFinalizer(newt, threadFinalize)
 			return newt
 		}
 		return nil
@@ -54,9 +43,8 @@ func currentThread(create bool) *thread {
 		if create {
 			mp := *(*map[string]string)(label)
 			newt := &thread{labels: mp, magic: threadMagic, id: goid}
-			runtime.SetFinalizer(newt, (*thread).finalize)
 			gp.setLabels(unsafe.Pointer(newt))
-			threadFinalize(newt)
+			runtime.SetFinalizer(newt, threadFinalize)
 			return newt
 		}
 		return nil
@@ -65,9 +53,8 @@ func currentThread(create bool) *thread {
 	if id != goid {
 		if create || t.labels != nil {
 			newt := &thread{labels: t.labels, magic: threadMagic, id: goid}
-			runtime.SetFinalizer(newt, (*thread).finalize)
 			gp.setLabels(unsafe.Pointer(newt))
-			threadFinalize(newt)
+			runtime.SetFinalizer(newt, threadFinalize)
 			return newt
 		}
 		gp.setLabels(nil)
@@ -81,17 +68,17 @@ func currentThread(create bool) *thread {
 //go:norace
 //go:nocheckptr
 func extractThread(gp g, label unsafe.Pointer) (t *thread, magic int64, id int64) {
-	old := gp.setPanicOnFault(true)
-	defer func() {
-		gp.setPanicOnFault(old)
-		recover()
-	}()
+	if thread_safe {
+		old := gp.setPanicOnFault(true)
+		defer func() {
+			gp.setPanicOnFault(old)
+			recover()
+		}()
+	}
 	t = (*thread)(label)
 	return t, t.magic, t.id
 }
 
 func threadFinalize(t *thread) {
-	runtime.SetFinalizer(t, func(p *thread) {
-		t.magic = 0
-	})
+	t.magic = 0
 }
