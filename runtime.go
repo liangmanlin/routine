@@ -1,7 +1,7 @@
 package routine
 
 import (
-	_ "github.com/timandy/routine/g"
+	_ "github.com/liangmanlin/routine/g"
 	"reflect"
 	"unsafe"
 )

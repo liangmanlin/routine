@@ -1,4 +1,4 @@
-module github.com/timandy/routine
+module github.com/liangmanlin/routine
 
 go 1.18
 
