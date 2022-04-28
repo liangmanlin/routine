@@ -8,11 +8,17 @@ func Set(ptr unsafe.Pointer) {
 }
 
 func Get[T any]() *T {
-	th := currentThread(true)
+	th := currentThread(false)
+	if th == nil {
+		return nil
+	}
 	return (*T)(th.val)
 }
 
 func GetPtr() unsafe.Pointer {
-	th := currentThread(true)
+	th := currentThread(false)
+	if th == nil {
+		return nil
+	}
 	return th.val
 }
